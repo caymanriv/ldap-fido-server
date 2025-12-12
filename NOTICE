@@ -1,0 +1,35 @@
+LDAP FIDO Server
+Copyright (c) 2025 Cayetano Manchón
+
+This project includes the following third-party software:
+
+## Runtime Dependencies
+1. cors - MIT License (https://github.com/expressjs/cors)
+2. dotenv - BSD-3-Clause License (https://github.com/motdotla/dotenv)
+3. express - MIT License (https://github.com/expressjs/express)
+4. express-rate-limit - MIT License (https://github.com/express-rate-limit/express-rate-limit)
+5. express-session - MIT License (https://github.com/expressjs/session)
+6. helmet - MIT License (https://github.com/helmetjs/helmet)
+7. joi - MIT License (https://github.com/sideway/joi)
+8. ldapts - MIT License (https://github.com/ldapts/ldapts)
+9. morgan - MIT License (https://github.com/expressjs/morgan)
+10. openid-client - MIT License (https://github.com/panva/node-openid-client)
+11. passport-ldapauth - MIT License (https://github.com/vesse/passport-ldapauth)
+12. passport-saml - MIT License (https://github.com/panva/passport-saml)
+13. passport - MIT License (https://github.com/jaredhanson/passport)
+14. @xmldom/xmldom - MIT License (https://github.com/xmldom/xmldom)
+15. xml-encryption - MIT License (https://github.com/panva/node-xml-encryption)
+
+## Development Dependencies
+1. @eslint/js - MIT License (https://github.com/eslint/eslint)
+2. eslint - MIT License (https://github.com/eslint/eslint)
+3. jest - MIT License (https://github.com/facebook/jest)
+4. license-checker - MIT License (https://github.com/davglass/license-checker)
+5. nodemon - MIT License (https://github.com/remy/nodemon)
+
+## Overrides
+1. xml2js - MIT License (https://github.com/Leonidas-from-XIV/node-xml2js)
+
+For the full text of these licenses, see the LICENSES directory.
+
+Note: Some dependencies may have additional dependencies with their own licenses. Please refer to the package.json and node_modules directories for complete license information.

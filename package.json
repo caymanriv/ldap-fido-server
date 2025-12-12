@@ -1,0 +1,58 @@
+{
+	"name": "ldap-fido-server",
+	"author": "Cayetano Manchón",
+	"contributors": [
+		"Cayetano Manchón (https://github.com/caymanriv)"
+	],
+	"version": "1.0.0",
+	"license": "MIT",
+	"description": "A PAM-like app supporting FIDO2 and LDAP",
+	"main": "index.js",
+	"type": "module",
+	"scripts": {
+		"start": "node index.js",
+		"postinstall": "npm --prefix client install && npm --prefix server install",
+		"dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
+		"dev:server": "npm --prefix server run dev",
+		"dev:client": "npm --prefix client run dev",
+		"test": "jest",
+		"test:watch": "jest --watch",
+		"lint": "eslint .",
+		"docker:build": "docker build -t ldap-fido-server .",
+		"docker:run": "docker run -p 3000:3000 ldap-fido-server"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/caymanriv/ldap-fido-server.git"
+	},
+	"keywords": [
+		"ldap",
+		"fido",
+		"fido2",
+		"webauthn",
+		"authentication"
+	],
+	"bugs": {
+		"url": "https://github.com/caymanriv/ldap-fido-server/issues"
+	},
+	"homepage": "https://github.com/caymanriv/ldap-fido-server#readme",
+	"dependencies": {},
+	"devDependencies": {
+		"@eslint/js": "^9.29.0",
+		"eslint": "^9.29.0",
+		"jest": "^30.0.2",
+		"concurrently": "^9.1.2"
+	},
+	"overrides": {},
+	"engines": {
+		"node": ">=22.11.0",
+		"npm": ">=10.9.0"
+	},
+	"jest": {
+		"testEnvironment": "node",
+		"collectCoverageFrom": [
+			"src/**/*.js",
+			"!src/**/*.test.js"
+		]
+	}
+}

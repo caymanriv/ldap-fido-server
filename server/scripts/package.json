@@ -1,0 +1,14 @@
+{
+  "name": "ldap-fido-server-ldap-init",
+  "version": "1.0.0",
+  "description": "Script to initialize OpenLDAP with users and groups",
+  "main": "seed-ldap.js",
+  "scripts": {
+    "start": "node seed-ldap.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "ldapjs": "^3.0.2"
+  },
+  "type": "module"
+}

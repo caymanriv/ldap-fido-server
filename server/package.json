@@ -1,0 +1,46 @@
+{
+	"name": "ldap-fido-server-backend",
+	"version": "1.0.0",
+	"type": "module",
+	"license": "MIT",
+	"main": "src/index.js",
+	"scripts": {
+		"start": "node src/index.js",
+		"dev": "nodemon src/index.js",
+		"test": "jest",
+		"lint": "eslint ."
+	},
+	"dependencies": {
+		"@simplewebauthn/server": "^13.1.2",
+		"base64url": "^3.0.1",
+		"cbor": "^10.0.9",
+		"connect-redis": "^7.1.0",
+		"dotenv": "^17.2.0",
+		"express": "^5.1.0",
+		"express-rate-limit": "^7.5.1",
+		"express-session": "^1.18.1",
+		"helmet": "^8.1.0",
+		"jszip": "^3.10.1",
+		"ldapts": "^8.0.5",
+		"morgan": "^1.10.0",
+		"nodemailer": "^7.0.5",
+		"passport": "^0.7.0",
+		"passport-ldapauth": "^3.0.1",
+		"pg": "^8.16.3",
+		"redis": "^4.6.13",
+		"uuid": "^9.0.1"
+	},
+	"devDependencies": {
+		"eslint": "^9.18.0",
+		"jest": "^30.0.2",
+		"nodemon": "^3.1.10",
+		"supertest": "^7.1.1"
+	},
+	"overrides": {
+		"xml2js": "0.6.2"
+	},
+	"engines": {
+		"node": ">=22.11.0",
+		"npm": ">=10.9.0"
+	}
+}

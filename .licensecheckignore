@@ -1,0 +1,5 @@
+# Ignore the project's own license
+LICENSE
+
+# Ignore development dependencies
+node_modules/

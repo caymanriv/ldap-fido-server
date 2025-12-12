@@ -1,0 +1,22 @@
+name: License Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-licenses:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+    - run: npm ci
+    - name: Check licenses
+      run: npx license-checker --production --onlyAllow 'MIT;ISC;BSD;Apache-2.0;0BSD'
+    - name: Audit dependencies
+      run: npm audit

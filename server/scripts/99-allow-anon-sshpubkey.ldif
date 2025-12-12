@@ -1,0 +1,7 @@
+dn: olcDatabase={1}mdb,cn=config
+changetype: modify
+add: olcAccess
+olcAccess: {0}to attrs=sshPublicKey
+  by anonymous read
+  by self read
+  by users read

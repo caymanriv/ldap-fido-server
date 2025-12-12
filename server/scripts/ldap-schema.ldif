@@ -1,0 +1,51 @@
+# Add SSH Public Key schema
+# Note: This needs to be loaded by an LDAP administrator
+
+dn: cn={0}core,cn=schema,cn=config
+changetype: modify
+add: olcObjectClasses
+olcObjectClasses: ( 1.3.6.1.4.1.24552.500.1.1.2.0 NAME 'ldapPublicKey' SUP top AUXILIARY 
+  DESC 'Mixin object class for storing SSH public keys' 
+  MAY ( sshPublicKey $ sshKeyFingerprint ) )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.24552.500.1.1.2.1 
+  NAME 'sshPublicKey' 
+  DESC 'SSH public key for user authentication' 
+  EQUALITY caseExactMatch 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+  X-ORIGIN 'OpenSSH LDAP Public Key' 
+  SINGLE-VALUE )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 1.3.6.1.4.1.24552.500.1.1.2.2 
+  NAME 'sshKeyFingerprint' 
+  DESC 'Fingerprint of the SSH public key' 
+  EQUALITY caseExactMatch 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 
+  X-ORIGIN 'OpenSSH LDAP Public Key' 
+  SINGLE-VALUE )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 2.5.13.57 NAME 'certificateListMatch' 
+  DESC 'Certificate List Matching Rule' 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 
+  X-ORIGIN 'RFC 4523' )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 2.5.13.58 NAME 'algorithmIdentifierMatch' 
+  DESC 'Algorithm Identifier Matching Rule' 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 
+  X-ORIGIN 'RFC 4523' )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 2.5.13.59 NAME 'certificateExactMatch' 
+  DESC 'Certificate Exact Matching Rule' 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 
+  X-ORIGIN 'RFC 4523' )
+-
+add: olcAttributeTypes
+olcAttributeTypes: ( 2.5.13.60 NAME 'certificateMatch' 
+  DESC 'Certificate Matching Rule' 
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.40 
+  X-ORIGIN 'RFC 4523' )

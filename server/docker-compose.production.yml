@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    ports:
+      - "${SERVER_DEFAULT_PORT}:${SERVER_DEFAULT_PORT}"
+    expose:
+      - "${SERVER_DEFAULT_PORT}"
+    environment:
+      - SERVER_DEFAULT_PORT=${SERVER_DEFAULT_PORT}
+      - SERVER_SESSION_SECRET=${SERVER_SESSION_SECRET}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - LDAP_URL=${LDAP_URL}
+      - LDAP_ADMIN_DN=${LDAP_ADMIN_DN}
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD}
+      - LDAP_SEARCH_BASE_USERS=${LDAP_SEARCH_BASE_USERS}
+      - LDAP_SEARCH_FILTER=${LDAP_SEARCH_FILTER}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+  client:
+    build: ../client
+    ports:
+      - "${FRONTEND_DEFAULT_PORT}:${FRONTEND_DEFAULT_PORT}"
+    expose:
+      - "${FRONTEND_DEFAULT_PORT}"
+    environment:
+      - FRONTEND_DEFAULT_PORT=${FRONTEND_DEFAULT_PORT}

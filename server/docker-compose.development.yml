@@ -1,0 +1,215 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - '6379:6379'
+    restart: always
+    
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: openldap
+    env_file:
+      - /home/caymanriv/GitHub/ldap-fido-server/env/server/development/.env
+    environment:
+      # Base DN configuration
+      - LDAP_ORGANISATION=${LDAP_ORGANISATION:-Example Org}
+      - LDAP_DOMAIN=${LDAP_DOMAIN:-example.org}
+      - LDAP_BASE_DN=${LDAP_BASE_DN:-dc=example,dc=org}
+      
+      # Admin credentials
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD:-adminpassword}
+      - LDAP_CONFIG_PASSWORD=${LDAP_CONFIG_PASSWORD:-configpassword}
+      - LDAP_READONLY_USER=false
+      
+      # Schema and backend
+      - LDAP_RFC2307BIS_SCHEMA=false
+      - LDAP_BACKEND=mdb
+      
+      # TLS/SSL
+      - LDAP_TLS=false
+      - LDAP_TLS_VERIFY_CLIENT=never
+      - LDAP_TLS_ENFORCE=false
+      - LDAP_TLS_CIPHER_SUITE=SECURE256:+SECURE128:-VERS-TLS-ALL:+VERS-TLS1.2:-RSA:-DHE-DSS:-CAMELLIA-128-CBC:-CAMELLIA-256-CBC
+      - LDAP_TLS_CRT_FILENAME=
+      - LDAP_TLS_KEY_FILENAME=
+      - LDAP_TLS_CA_CRT_FILENAME=
+      
+      # Container settings
+      - LDAP_OPENLDAP_UID=1000
+      - LDAP_OPENLDAP_GID=1000
+      - LDAP_REMOVE_CONFIG_AFTER_SETUP=false
+      
+      # Logging
+      - LDAP_LOG_LEVEL=256
+      - LDAP_DEBUG_LEVEL=256
+    
+    # Use host networking so OpenLDAP is exposed on the host's network stack
+    network_mode: host
+    
+    # Volumes for data persistence
+    volumes:
+      - openldap_data:/var/lib/ldap
+      - openldap_config:/etc/ldap/slapd.d
+      
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check - use a simple ldapsearch to verify server is responsive
+    healthcheck:
+      test: ["CMD-SHELL", "ldapwhoami -x -H ldap://localhost:389 || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 120
+      start_period: 180s
+
+  postgres:
+    image: postgres:15
+    restart: always
+    env_file:
+      - /home/caymanriv/GitHub/ldap-fido-server/env/server/development/.env
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ldapfido} -d ${DB_NAME:-ldapfido}"]
+      interval: 30s
+      timeout: 15s
+      retries: 40
+      start_period: 60s
+
+  db-init-app-vars:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.db-init-app-vars
+    depends_on:
+      - postgres
+    env_file:
+      - /home/caymanriv/GitHub/ldap-fido-server/env/server/development/.env
+    volumes:
+      - /home/caymanriv/GitHub/ldap-fido-server/env/server/development/.env:/app/.env:ro
+
+  ldap-init:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.ldap-init
+    environment:
+      - NODE_ENV=development
+      - DEBUG=ldap*
+      - LDAP_URL=ldap://host.docker.internal:389
+      - LDAP_BASE_DN=dc=example,dc=org
+      - LDAP_ADMIN_DN=cn=admin,dc=example,dc=org
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD:-adminpassword}
+      - LDAP_SEARCH_BASE_USERS=ou=users,dc=example,dc=org
+      - LDAP_ORGANISATION=Example Org
+      - LDAP_DOMAIN=example.org
+      - LDAP_APP_ADMIN_GROUP_CN=admin
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      openldap:
+        condition: service_healthy
+      ldap-seed-base:
+        condition: service_completed_successfully
+      openldap-acl:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "ldapwhoami -x -H ldap://host.docker.internal:389 -D \"cn=admin,dc=example,dc=org\" -w adminpassword || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 20
+      start_period: 120s
+    restart: on-failure
+
+  openldap-acl:
+    image: osixia/openldap:1.5.0
+    entrypoint: ["/bin/sh", "-lc"]
+    depends_on:
+      openldap:
+        condition: service_healthy
+    environment:
+      - LDAP_URI=ldap://host.docker.internal:389
+      - LDAP_CONFIG_PASSWORD=${LDAP_CONFIG_PASSWORD:-configpassword}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./scripts:/ldif:ro
+    command: ["ldapmodify -x -H ldap://host.docker.internal:389 -D 'cn=admin,cn=config' -w '${LDAP_CONFIG_PASSWORD:-configpassword}' -f /ldif/allow-anon-ssh-acl.ldif"]
+    restart: "no"
+
+  ldap-seed-base:
+    image: osixia/openldap:1.5.0
+    entrypoint: ["/bin/sh", "-lc"]
+    depends_on:
+      openldap:
+        condition: service_healthy
+    environment:
+      - LDAP_HOST_URI=ldap://host.docker.internal:389
+      - LDAP_ADMIN_DN=cn=admin,dc=example,dc=org
+      - LDAP_ADMIN_PASSWORD=${LDAP_ADMIN_PASSWORD:-adminpassword}
+      - BASE_DN=dc=example,dc=org
+      - LDIF_PATH=/ldif/base-dit.ldif
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./scripts:/ldif:ro
+    command: ["sh /ldif/ldap-seed-base.sh"]
+    restart: "no"
+
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    expose:
+      - "3000"
+    env_file:
+      - /home/caymanriv/GitHub/ldap-fido-server/env/server/development/.env
+    environment:
+      # Server settings
+      - NODE_ENV=development
+      - SERVER_DEFAULT_PORT=3000
+      - SERVER_SESSION_SECRET=your_secure_random_string
+      - SESSION_COOKIE_SAMESITE=lax
+      - SESSION_COOKIE_SECURE=false
+      
+      # Redis settings
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      
+      # LDAP settings
+      - LDAP_URL=ldap://host.docker.internal:389
+      - LDAP_ADMIN_DN=cn=admin,dc=example,dc=org
+      - LDAP_ADMIN_PASSWORD=adminpassword
+      - LDAP_SEARCH_BASE_USERS=ou=users,dc=example,dc=org
+      - LDAP_SEARCH_FILTER=(uid={{username}})
+      - LDAP_APP_ADMIN_GROUP_CN=admin
+      
+      # Database settings
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ldapfido
+      - DB_USER=ldapfido
+      - DB_PASSWORD=ldapfido_pw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      openldap:
+        condition: service_healthy
+      ldap-seed-base:
+        condition: service_completed_successfully
+      openldap-acl:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  openldap_data:
+    driver: local
+  openldap_config:
+    driver: local

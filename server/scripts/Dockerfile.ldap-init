@@ -1,0 +1,17 @@
+FROM node:22.11.0-alpine
+WORKDIR /app
+
+# Install dependencies
+RUN apk add --no-cache bash openldap-clients
+
+# Create package.json with type: module
+RUN echo '{"name": "ldap-seed", "version": "1.0.0", "type": "module"}' > package.json
+
+# Install Node.js dependencies
+RUN npm install ldapjs dotenv
+
+# Copy the seed script and its dependencies
+COPY ./scripts/seed-ldap.js /app/seed-ldap.js
+
+# Set the entrypoint
+CMD ["node", "/app/seed-ldap.js"]

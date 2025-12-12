@@ -1,0 +1,19 @@
+FROM node:20-alpine
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache postgresql-client
+
+# Copy package files and install dependencies
+COPY ./package.json ./package-lock.json ./
+RUN npm install --omit=dev
+
+# Copy source code and scripts
+COPY ./src /app/src
+COPY ./scripts /app/scripts
+
+# Make scripts executable
+RUN chmod +x /app/scripts/db-init-app-vars.sh
+
+# Set the entrypoint
+CMD ["/app/scripts/db-init-app-vars.sh"]
